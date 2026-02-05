@@ -235,24 +235,70 @@ export const importData = (userId: string, importedData: string): void => {
     const parsed = JSON.parse(importedData);
     const data = loadData();
     
+    const categoryIdMap: Record<string, string> = {};
+    
     if (parsed.categories) {
-      parsed.categories.forEach((cat: Category) => {
-        data.categories.push({ ...cat, userId, id: `cat-${Date.now()}-${Math.random()}` });
+      parsed.categories.forEach((cat: any) => {
+        const oldId = cat.id;
+        const newId = `cat-${Date.now()}-${Math.random()}`;
+        categoryIdMap[oldId] = newId;
+        
+        data.categories.push({
+          id: newId,
+          name: cat.name,
+          type: cat.type,
+          userId: userId,
+        });
       });
     }
+    
     if (parsed.transactions) {
-      parsed.transactions.forEach((trans: Transaction) => {
-        data.transactions.push({ ...trans, userId, id: `trans-${Date.now()}-${Math.random()}` });
+      parsed.transactions.forEach((trans: any) => {
+        const oldCategoryId = trans.category || trans.categoryId;
+        const newCategoryId = categoryIdMap[oldCategoryId] || oldCategoryId;
+        
+        const newTransaction: Transaction = {
+          id: `trans-${Date.now()}-${Math.random()}`,
+          userId: userId,
+          type: trans.type,
+          amount: trans.amount,
+          description: trans.description,
+          categoryId: newCategoryId,
+          date: trans.date,
+          isRecurring: trans.recurrence === 'monthly' || trans.isRecurring,
+          recurringMonths: trans.recurringMonths,
+          recurringSeriesId: trans.recurrenceId || trans.recurringSeriesId,
+        };
+        
+        data.transactions.push(newTransaction);
       });
     }
+    
     if (parsed.scheduledBills) {
-      parsed.scheduledBills.forEach((bill: ScheduledBill) => {
-        data.scheduledBills.push({ ...bill, userId, id: `bill-${Date.now()}-${Math.random()}` });
+      parsed.scheduledBills.forEach((bill: any) => {
+        const oldCategoryId = bill.category || bill.categoryId;
+        const newCategoryId = categoryIdMap[oldCategoryId] || oldCategoryId;
+        
+        data.scheduledBills.push({
+          ...bill,
+          userId,
+          categoryId: newCategoryId,
+          id: `bill-${Date.now()}-${Math.random()}`,
+        });
       });
     }
+    
     if (parsed.scheduledBillInstances) {
-      parsed.scheduledBillInstances.forEach((inst: ScheduledBillInstance) => {
-        data.scheduledBillInstances.push({ ...inst, userId, id: `bill-inst-${Date.now()}-${Math.random()}` });
+      parsed.scheduledBillInstances.forEach((inst: any) => {
+        const oldCategoryId = inst.category || inst.categoryId;
+        const newCategoryId = categoryIdMap[oldCategoryId] || oldCategoryId;
+        
+        data.scheduledBillInstances.push({
+          ...inst,
+          userId,
+          categoryId: newCategoryId,
+          id: `bill-inst-${Date.now()}-${Math.random()}`,
+        });
       });
     }
     
