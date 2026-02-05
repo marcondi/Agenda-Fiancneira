@@ -24,12 +24,14 @@ export const Dashboard: React.FC = () => {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [activeView, setActiveView] = useState<'dashboard' | 'transactions' | 'schedule'>('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const loadData = () => {
     if (!user) return;
     setTransactions(getUserTransactions(user.id));
     setCategories(getUserCategories(user.id));
     setScheduledInstances(getUserScheduledBillInstances(user.id));
+    setRefreshKey(prev => prev + 1);
   };
 
   useEffect(() => {
@@ -312,6 +314,7 @@ export const Dashboard: React.FC = () => {
               />
             </div>
             <TransactionList
+              key={refreshKey}
               transactions={filteredTransactions}
               categories={categories}
               onUpdate={loadData}
