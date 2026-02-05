@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, LogOut, Moon, Sun, Settings, Download, Upload, AlertCircle, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { getUserTransactions, getUserCategories, getUserScheduledBillInstances } from '../utils/storage';
+import { getUserTransactions, getUserCategories, getUserScheduledBillInstances, exportData, importData } from '../utils/storage';
 import { Transaction, Category, ScheduledBillInstance } from '../types';
 import { TransactionModal } from './TransactionModal';
 import { TransactionList } from './TransactionList';
@@ -90,7 +90,6 @@ export const Dashboard: React.FC = () => {
 
   const handleExportData = () => {
     if (!user) return;
-    const { exportData } = require('../utils/storage');
     const data = exportData(user.id);
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -110,7 +109,6 @@ export const Dashboard: React.FC = () => {
         const reader = new FileReader();
         reader.onload = (event) => {
           try {
-            const { importData } = require('../utils/storage');
             importData(user.id, event.target?.result as string);
             loadData();
             alert('Dados importados com sucesso!');

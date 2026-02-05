@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Edit2, Trash2, Check, Calendar } from 'lucide-react';
 import { ScheduledBillInstance, Category } from '../types';
 import { deleteScheduledBillInstance, deleteScheduledBillSeries, updateScheduledBillInstance } from '../utils/storage';

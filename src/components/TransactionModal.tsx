@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { Category, Transaction } from '../types';
-import { addTransaction, updateTransaction, deleteTransaction } from '../utils/storage';
+import { addTransaction, updateTransaction, deleteTransaction, getUserTransactions } from '../utils/storage';
 import { useAuth } from '../contexts/AuthContext';
 
 interface TransactionModalProps {
@@ -59,7 +59,6 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       if (editMode === 'single') {
         updateTransaction(transaction.id, transactionData);
       } else if (editMode === 'future' || editMode === 'all') {
-        const { getUserTransactions } = require('../utils/storage');
         const allTransactions = getUserTransactions(user.id);
         const seriesToUpdate = allTransactions.filter((t: Transaction) => 
           t.recurringSeriesId === transaction.recurringSeriesId
@@ -108,7 +107,6 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         if (deleteOption === '1') {
           deleteTransaction(transaction.id);
         } else if (deleteOption === '2' || deleteOption === '3') {
-          const { getUserTransactions } = require('../utils/storage');
           const allTransactions = getUserTransactions(user!.id);
           const seriesToDelete = allTransactions.filter((t: Transaction) => 
             t.recurringSeriesId === transaction.recurringSeriesId
@@ -130,6 +128,55 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     }
   };
 
+  const handleEditSingle = () => {
+    if (!user || !transaction) return;
+    updateTransaction(transaction.id, {
+      type,
+      amount: parseFloat(amount),
+      description,
+      categoryId,
+    });
+    onSave();
+    onClose();
+  };
+
+  const handleEditFuture = () => {
+    if (!user || !transaction) return;
+    const allTransactions = getUserTransactions(user.id);
+    const seriesToUpdate = allTransactions.filter((t: Transaction) => 
+      t.recurringSeriesId === transaction.recurringSeriesId &&
+      new Date(t.date) >= new Date(transaction.date)
+    );
+    seriesToUpdate.forEach((t: Transaction) => {
+      updateTransaction(t.id, {
+        type,
+        amount: parseFloat(amount),
+        description,
+        categoryId,
+      });
+    });
+    onSave();
+    onClose();
+  };
+
+  const handleEditAll = () => {
+    if (!user || !transaction) return;
+    const allTransactions = getUserTransactions(user.id);
+    const seriesToUpdate = allTransactions.filter((t: Transaction) => 
+      t.recurringSeriesId === transaction.recurringSeriesId
+    );
+    seriesToUpdate.forEach((t: Transaction) => {
+      updateTransaction(t.id, {
+        type,
+        amount: parseFloat(amount),
+        description,
+        categoryId,
+      });
+    });
+    onSave();
+    onClose();
+  };
+
   if (showEditOptions) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -142,71 +189,19 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           </p>
           <div className="space-y-3">
             <button
-              onClick={() => {
-                setShowEditOptions(false);
-                handleSubmit(new Event('submit') as any);
-              }}
+              onClick={handleEditSingle}
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition-colors"
             >
               Apenas este lançamento
             </button>
             <button
-              onClick={() => {
-                handleSubmit = (e: React.FormEvent) => {
-                  e.preventDefault();
-                  if (!user || !amount || !description || !categoryId || !date) return;
-                  
-                  const { getUserTransactions } = require('../utils/storage');
-                  const allTransactions = getUserTransactions(user.id);
-                  const seriesToUpdate = allTransactions.filter((t: Transaction) => 
-                    t.recurringSeriesId === transaction!.recurringSeriesId &&
-                    new Date(t.date) >= new Date(transaction!.date)
-                  );
-
-                  seriesToUpdate.forEach((t: Transaction) => {
-                    updateTransaction(t.id, {
-                      type,
-                      amount: parseFloat(amount),
-                      description,
-                      categoryId,
-                    });
-                  });
-                  
-                  onSave();
-                  onClose();
-                };
-                handleSubmit(new Event('submit') as any);
-              }}
+              onClick={handleEditFuture}
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition-colors"
             >
               Este e os futuros
             </button>
             <button
-              onClick={() => {
-                handleSubmit = (e: React.FormEvent) => {
-                  e.preventDefault();
-                  if (!user || !amount || !description || !categoryId || !date) return;
-                  
-                  const { getUserTransactions } = require('../utils/storage');
-                  const allTransactions = getUserTransactions(user.id);
-                  const seriesToUpdate = allTransactions.filter((t: Transaction) => 
-                    t.recurringSeriesId === transaction!.recurringSeriesId
-                  );
-
-                  seriesToUpdate.forEach((t: Transaction) => {
-                    updateTransaction(t.id, {
-                      type,
-                      amount: parseFloat(amount),
-                      description,
-                      categoryId,
-                    });
-                  });
-                  
-                  onSave();
-                  onClose();
-                };
-                handleSubmit(new Event('submit') as any);
-              }}
+              onClick={handleEditAll}
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition-colors"
             >
               Todos da série

@@ -63,7 +63,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                   <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
                     <div className="flex items-center gap-2">
                       {transaction.isRecurring && (
-                        <Repeat className="w-4 h-4 text-indigo-500" title="Recorrente" />
+                        <Repeat className="w-4 h-4 text-indigo-500" />
                       )}
                       {transaction.description}
                     </div>
